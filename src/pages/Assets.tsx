@@ -3,11 +3,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Search, Filter, Factory } from "lucide-react";
+import { Search, Filter, Factory } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAssets } from "@/hooks/useAssets";
+import { CreateAssetDialog } from "@/components/forms/CreateAssetDialog";
+import { Constants } from "@/integrations/supabase/types";
 import type { Enums } from "@/integrations/supabase/types";
 
 const critColors: Record<Enums<"asset_criticality">, string> = {
@@ -24,13 +27,16 @@ const statusColors: Record<Enums<"asset_status">, string> = {
 
 export default function Assets() {
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [critFilter, setCritFilter] = useState<string>("all");
   const { data: assets, isLoading, error } = useAssets();
 
-  const filtered = (assets ?? []).filter(
-    (a) =>
-      a.name.toLowerCase().includes(search.toLowerCase()) ||
-      a.code.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = (assets ?? []).filter((a) => {
+    const matchSearch = a.name.toLowerCase().includes(search.toLowerCase()) || a.code.toLowerCase().includes(search.toLowerCase());
+    const matchStatus = statusFilter === "all" || a.status === statusFilter;
+    const matchCrit = critFilter === "all" || a.criticality === critFilter;
+    return matchSearch && matchStatus && matchCrit;
+  });
 
   return (
     <div className="space-y-6">
@@ -41,37 +47,41 @@ export default function Assets() {
             {isLoading ? "Carregando..." : `${assets?.length ?? 0} equipamentos cadastrados`}
           </p>
         </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Novo Ativo
-        </Button>
+        <CreateAssetDialog />
       </div>
 
       <Card>
         <CardHeader className="pb-3">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <CardTitle className="text-base">Lista de Equipamentos</CardTitle>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar ativo..."
-                  className="pl-9 h-9 w-64"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
+                <Input placeholder="Buscar ativo..." className="pl-9 h-9 w-48" value={search} onChange={(e) => setSearch(e.target.value)} />
               </div>
-              <Button variant="outline" size="sm">
-                <Filter className="mr-2 h-4 w-4" />
-                Filtros
-              </Button>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="h-9 w-40"><SelectValue placeholder="Status" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os status</SelectItem>
+                  {Constants.public.Enums.asset_status.map((s) => (
+                    <SelectItem key={s} value={s}>{s}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={critFilter} onValueChange={setCritFilter}>
+                <SelectTrigger className="h-9 w-40"><SelectValue placeholder="Criticidade" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas</SelectItem>
+                  {Constants.public.Enums.asset_criticality.map((c) => (
+                    <SelectItem key={c} value={c}>Criticidade {c}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          {error && (
-            <p className="text-sm text-destructive py-4">Erro ao carregar ativos. Verifique se você está autenticado.</p>
-          )}
+          {error && <p className="text-sm text-destructive py-4">Erro ao carregar ativos. Verifique se você está autenticado.</p>}
           <Table>
             <TableHeader>
               <TableRow>
@@ -86,16 +96,12 @@ export default function Assets() {
             <TableBody>
               {isLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
-                  <TableRow key={i}>
-                    {Array.from({ length: 6 }).map((_, j) => (
-                      <TableCell key={j}><Skeleton className="h-4 w-full" /></TableCell>
-                    ))}
-                  </TableRow>
+                  <TableRow key={i}>{Array.from({ length: 6 }).map((_, j) => (<TableCell key={j}><Skeleton className="h-4 w-full" /></TableCell>))}</TableRow>
                 ))
               ) : filtered.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                    {search ? "Nenhum ativo encontrado para a busca." : "Nenhum ativo cadastrado ainda."}
+                    {search || statusFilter !== "all" || critFilter !== "all" ? "Nenhum ativo encontrado com esses filtros." : "Nenhum ativo cadastrado ainda."}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -111,14 +117,10 @@ export default function Assets() {
                     <TableCell>{asset.location ?? "—"}</TableCell>
                     <TableCell>{asset.category ?? "—"}</TableCell>
                     <TableCell>
-                      <Badge variant="outline" className={cn("text-xs", critColors[asset.criticality])}>
-                        {asset.criticality}
-                      </Badge>
+                      <Badge variant="outline" className={cn("text-xs", critColors[asset.criticality])}>{asset.criticality}</Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="secondary" className={cn("text-xs", statusColors[asset.status])}>
-                        {asset.status}
-                      </Badge>
+                      <Badge variant="secondary" className={cn("text-xs", statusColors[asset.status])}>{asset.status}</Badge>
                     </TableCell>
                   </TableRow>
                 ))
