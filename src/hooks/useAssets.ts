@@ -1,6 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import type { Tables } from "@/integrations/supabase/types";
+import type { Tables, TablesInsert } from "@/integrations/supabase/types";
 
 export type Asset = Tables<"assets">;
 
@@ -15,5 +15,17 @@ export function useAssets() {
       if (error) throw error;
       return data as Asset[];
     },
+  });
+}
+
+export function useCreateAsset() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (asset: TablesInsert<"assets">) => {
+      const { data, error } = await supabase.from("assets").insert(asset).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["assets"] }),
   });
 }
