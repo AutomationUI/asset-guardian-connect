@@ -4,19 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, Search, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useParts } from "@/hooks/useParts";
+import type { Enums } from "@/integrations/supabase/types";
 
-const parts = [
-  { id: "PT-001", name: "Rolamento 6205-2RS", category: "Rolamentos", stock: 2, min: 5, max: 20, unit: "un", status: "Crítico" },
-  { id: "PT-002", name: "Correia A-68", category: "Correias", stock: 12, min: 5, max: 30, unit: "un", status: "Normal" },
-  { id: "PT-003", name: "Óleo ISO VG 68", category: "Lubrificantes", stock: 45, min: 20, max: 100, unit: "L", status: "Normal" },
-  { id: "PT-004", name: "Filtro de Ar Compressor", category: "Filtros", stock: 3, min: 4, max: 15, unit: "un", status: "Baixo" },
-  { id: "PT-005", name: "Selo Mecânico 50mm", category: "Vedações", stock: 8, min: 3, max: 12, unit: "un", status: "Normal" },
-  { id: "PT-006", name: "Fusível NH 160A", category: "Elétricos", stock: 1, min: 5, max: 20, unit: "un", status: "Crítico" },
-];
-
-const stockColors: Record<string, string> = {
+const stockColors: Record<Enums<"part_status">, string> = {
   Normal: "bg-[hsl(var(--success))]/10 text-[hsl(var(--success))]",
   Baixo: "bg-[hsl(var(--warning))]/10 text-[hsl(var(--warning))]",
   Crítico: "bg-destructive/10 text-destructive",
@@ -24,14 +18,18 @@ const stockColors: Record<string, string> = {
 
 export default function Parts() {
   const [search, setSearch] = useState("");
-  const filtered = parts.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()));
+  const { data: parts, isLoading, error } = useParts();
+
+  const filtered = (parts ?? []).filter((p) => p.name.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-xl font-semibold">Peças e Estoque</h2>
-          <p className="text-sm text-muted-foreground">{parts.length} itens em estoque</p>
+          <p className="text-sm text-muted-foreground">
+            {isLoading ? "Carregando..." : `${parts?.length ?? 0} itens em estoque`}
+          </p>
         </div>
         <Button><Plus className="mr-2 h-4 w-4" />Nova Peça</Button>
       </div>
@@ -46,6 +44,9 @@ export default function Parts() {
           </div>
         </CardHeader>
         <CardContent>
+          {error && (
+            <p className="text-sm text-destructive py-4">Erro ao carregar peças. Verifique se você está autenticado.</p>
+          )}
           <Table>
             <TableHeader>
               <TableRow>
@@ -59,19 +60,35 @@ export default function Parts() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map((p) => (
-                <TableRow key={p.id}>
-                  <TableCell className="font-medium">{p.id}</TableCell>
-                  <TableCell>{p.name}</TableCell>
-                  <TableCell>{p.category}</TableCell>
-                  <TableCell className="text-right tabular-nums">{p.stock} {p.unit}</TableCell>
-                  <TableCell className="text-right tabular-nums">{p.min}</TableCell>
-                  <TableCell className="text-right tabular-nums">{p.max}</TableCell>
-                  <TableCell>
-                    <Badge variant="secondary" className={cn("text-xs", stockColors[p.status])}>{p.status}</Badge>
+              {isLoading ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i}>
+                    {Array.from({ length: 7 }).map((_, j) => (
+                      <TableCell key={j}><Skeleton className="h-4 w-full" /></TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : filtered.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                    {search ? "Nenhuma peça encontrada." : "Nenhuma peça cadastrada."}
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                filtered.map((p) => (
+                  <TableRow key={p.id}>
+                    <TableCell className="font-medium">{p.code}</TableCell>
+                    <TableCell>{p.name}</TableCell>
+                    <TableCell>{p.category ?? "—"}</TableCell>
+                    <TableCell className="text-right tabular-nums">{p.stock} {p.unit}</TableCell>
+                    <TableCell className="text-right tabular-nums">{p.min_stock}</TableCell>
+                    <TableCell className="text-right tabular-nums">{p.max_stock}</TableCell>
+                    <TableCell>
+                      <Badge variant="secondary" className={cn("text-xs", stockColors[p.status])}>{p.status}</Badge>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>
