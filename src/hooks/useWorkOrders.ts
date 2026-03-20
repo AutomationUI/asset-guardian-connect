@@ -1,6 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import type { Tables } from "@/integrations/supabase/types";
+import type { Tables, TablesInsert } from "@/integrations/supabase/types";
 
 export type WorkOrder = Tables<"work_orders">;
 
@@ -15,5 +15,17 @@ export function useWorkOrders() {
       if (error) throw error;
       return data;
     },
+  });
+}
+
+export function useCreateWorkOrder() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (wo: TablesInsert<"work_orders">) => {
+      const { data, error } = await supabase.from("work_orders").insert(wo).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["work_orders"] }),
   });
 }
