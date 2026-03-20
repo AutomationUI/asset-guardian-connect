@@ -14,7 +14,295 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      assets: {
+        Row: {
+          category: string | null
+          code: string
+          created_at: string
+          criticality: Database["public"]["Enums"]["asset_criticality"]
+          id: string
+          install_date: string | null
+          location: string | null
+          manufacturer: string | null
+          model: string | null
+          name: string
+          notes: string | null
+          serial_number: string | null
+          status: Database["public"]["Enums"]["asset_status"]
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          code: string
+          created_at?: string
+          criticality?: Database["public"]["Enums"]["asset_criticality"]
+          id?: string
+          install_date?: string | null
+          location?: string | null
+          manufacturer?: string | null
+          model?: string | null
+          name: string
+          notes?: string | null
+          serial_number?: string | null
+          status?: Database["public"]["Enums"]["asset_status"]
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          code?: string
+          created_at?: string
+          criticality?: Database["public"]["Enums"]["asset_criticality"]
+          id?: string
+          install_date?: string | null
+          location?: string | null
+          manufacturer?: string | null
+          model?: string | null
+          name?: string
+          notes?: string | null
+          serial_number?: string | null
+          status?: Database["public"]["Enums"]["asset_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      parts: {
+        Row: {
+          category: string | null
+          code: string
+          created_at: string
+          id: string
+          location: string | null
+          max_stock: number
+          min_stock: number
+          name: string
+          notes: string | null
+          status: Database["public"]["Enums"]["part_status"]
+          stock: number
+          supplier: string | null
+          unit: string
+          unit_cost: number | null
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          code: string
+          created_at?: string
+          id?: string
+          location?: string | null
+          max_stock?: number
+          min_stock?: number
+          name: string
+          notes?: string | null
+          status?: Database["public"]["Enums"]["part_status"]
+          stock?: number
+          supplier?: string | null
+          unit?: string
+          unit_cost?: number | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          code?: string
+          created_at?: string
+          id?: string
+          location?: string | null
+          max_stock?: number
+          min_stock?: number
+          name?: string
+          notes?: string | null
+          status?: Database["public"]["Enums"]["part_status"]
+          stock?: number
+          supplier?: string | null
+          unit?: string
+          unit_cost?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      preventive_plans: {
+        Row: {
+          asset_id: string | null
+          checklist: Json | null
+          code: string
+          created_at: string
+          description: string | null
+          estimated_hours: number | null
+          frequency: Database["public"]["Enums"]["preventive_frequency"]
+          id: string
+          last_executed: string | null
+          name: string
+          next_date: string
+          notes: string | null
+          responsible: string | null
+          status: Database["public"]["Enums"]["preventive_status"]
+          updated_at: string
+        }
+        Insert: {
+          asset_id?: string | null
+          checklist?: Json | null
+          code: string
+          created_at?: string
+          description?: string | null
+          estimated_hours?: number | null
+          frequency?: Database["public"]["Enums"]["preventive_frequency"]
+          id?: string
+          last_executed?: string | null
+          name: string
+          next_date: string
+          notes?: string | null
+          responsible?: string | null
+          status?: Database["public"]["Enums"]["preventive_status"]
+          updated_at?: string
+        }
+        Update: {
+          asset_id?: string | null
+          checklist?: Json | null
+          code?: string
+          created_at?: string
+          description?: string | null
+          estimated_hours?: number | null
+          frequency?: Database["public"]["Enums"]["preventive_frequency"]
+          id?: string
+          last_executed?: string | null
+          name?: string
+          next_date?: string
+          notes?: string | null
+          responsible?: string | null
+          status?: Database["public"]["Enums"]["preventive_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "preventive_plans_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "preventive_plans_responsible_fkey"
+            columns: ["responsible"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string | null
+          full_name: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      work_orders: {
+        Row: {
+          actual_hours: number | null
+          asset_id: string | null
+          assigned_to: string | null
+          code: string
+          completed_at: string | null
+          cost: number | null
+          created_at: string
+          description: string | null
+          estimated_hours: number | null
+          id: string
+          notes: string | null
+          priority: Database["public"]["Enums"]["work_order_priority"]
+          requested_by: string | null
+          started_at: string | null
+          status: Database["public"]["Enums"]["work_order_status"]
+          title: string
+          type: Database["public"]["Enums"]["work_order_type"]
+          updated_at: string
+        }
+        Insert: {
+          actual_hours?: number | null
+          asset_id?: string | null
+          assigned_to?: string | null
+          code: string
+          completed_at?: string | null
+          cost?: number | null
+          created_at?: string
+          description?: string | null
+          estimated_hours?: number | null
+          id?: string
+          notes?: string | null
+          priority?: Database["public"]["Enums"]["work_order_priority"]
+          requested_by?: string | null
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["work_order_status"]
+          title: string
+          type?: Database["public"]["Enums"]["work_order_type"]
+          updated_at?: string
+        }
+        Update: {
+          actual_hours?: number | null
+          asset_id?: string | null
+          assigned_to?: string | null
+          code?: string
+          completed_at?: string | null
+          cost?: number | null
+          created_at?: string
+          description?: string | null
+          estimated_hours?: number | null
+          id?: string
+          notes?: string | null
+          priority?: Database["public"]["Enums"]["work_order_priority"]
+          requested_by?: string | null
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["work_order_status"]
+          title?: string
+          type?: Database["public"]["Enums"]["work_order_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "work_orders_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_orders_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_orders_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +311,21 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      asset_criticality: "A" | "B" | "C"
+      asset_status: "Operacional" | "Em Manutenção" | "Parado"
+      part_status: "Normal" | "Baixo" | "Crítico"
+      preventive_frequency:
+        | "Diária"
+        | "Semanal"
+        | "Quinzenal"
+        | "Mensal"
+        | "Trimestral"
+        | "Semestral"
+        | "Anual"
+      preventive_status: "No Prazo" | "Próximo" | "Vencido"
+      work_order_priority: "Urgente" | "Alta" | "Média" | "Baixa"
+      work_order_status: "Aberta" | "Em Andamento" | "Concluída" | "Cancelada"
+      work_order_type: "Corretiva" | "Preventiva" | "Preditiva"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +452,23 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      asset_criticality: ["A", "B", "C"],
+      asset_status: ["Operacional", "Em Manutenção", "Parado"],
+      part_status: ["Normal", "Baixo", "Crítico"],
+      preventive_frequency: [
+        "Diária",
+        "Semanal",
+        "Quinzenal",
+        "Mensal",
+        "Trimestral",
+        "Semestral",
+        "Anual",
+      ],
+      preventive_status: ["No Prazo", "Próximo", "Vencido"],
+      work_order_priority: ["Urgente", "Alta", "Média", "Baixa"],
+      work_order_status: ["Aberta", "Em Andamento", "Concluída", "Cancelada"],
+      work_order_type: ["Corretiva", "Preventiva", "Preditiva"],
+    },
   },
 } as const
